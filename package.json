@@ -1,0 +1,19 @@
+{
+  "name": "dynamic-stats-overlay",
+  "description": "Live in-game stats exposed in a local HTTP server that can be used as an OBS browser source",
+  "author": "necauqua",
+  "version": "1.0.0",
+  "private": true,
+  "noita.name": "Dynamic Stats Overlay",
+  "noita.compat": 12,
+  "noita.unsafe": true,
+  "scripts": {
+    "start": "nts run",
+    "build": "nts build"
+  },
+  "dependencies": {
+    "@noita-ts/base": "latest",
+    "@noita-ts/pollnet": "latest",
+    "@noita-ts/ffi": "latest"
+  }
+}

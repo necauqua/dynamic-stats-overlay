@@ -1,0 +1,9 @@
+{
+  "extends": "@noita-ts/base/mod-tsconfig.json",
+  "tstl": {
+    "noResolvePaths": ["$mod", "**.lua", "ffi", "bit"],
+    "luaTarget": "JIT",
+    "luaLibImport": "require-minimal",
+    "noImplicitSelf": true,
+  },
+}
