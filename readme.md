@@ -11,10 +11,15 @@ live in your scene forever and never needs refreshing.
 
 ### Usage
 
-Enable the mod and set the port you want in the mod settings.
+Install and enable the mod, start a new run — the overlay is actually running
+only during a run, and first time setup needs it running.
 
 In OBS, add a new Browser source and set the URL to `localhost:5435` (the port
 is configurable in mod settings).
+
+After seeing the overlay, you can close the game — note that the overlay will
+fade out when the game isn't running, you can add a `#stats.stale { opacity: 1; }`
+CSS rule temporarily to keep it visible while editing the CSS rules.
 
 The overlay is plain HTML and completely restylable.
 
@@ -39,12 +44,13 @@ NoitaPixel font installed on my system):
 
 Some things you can do from CSS:
 
-- Each stat is a `<span>` with an id: `#deaths`, `#wins`, `#streak`,
+- Each stat is an element with id: `#deaths`, `#wins`, `#streak`,
   `#record`. The label text in front of each number is just the `--label`
-  variable, so `#deaths { --label: "Deaths: "; }` can be used to rename it.
+  variable, so `#deaths { --label: "Deaths: "; }` can be used to change (or remove) it.
 - Hide a stat you don't care about with `#wins { display: none; }`.
 - `#stats` is a flex container, so `flex-direction`, `gap`, `align-items` etc.
-  control the layout.
+  control the layout. (Copy this readme section into an LLM and ask it in
+  English how you want your stats to look 🤷)
 - When the game isn't running the container gets the `stale` class, which
   fades it out via `opacity` — override `#stats.stale` if you'd rather keep
   the last known numbers on screen.
