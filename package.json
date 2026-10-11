@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@noita-ts/base": "latest",
-    "@noita-ts/pollnet": "latest",
-    "@noita-ts/ffi": "latest"
+    "@noita-ts/ffi": "latest",
+    "@noita-ts/http": "latest"
   }
 }

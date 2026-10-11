@@ -1,9 +1,9 @@
 import mod from "@noita-ts/base";
-import pollnet from "@noita-ts/pollnet";
-import GLOBAL_STATS from "@noita-ts/ffi/global_stats";
+import Scheduler from "@noita-ts/base/async";
+import GLOBAL_STATS from "@noita-ts/ffi/global-stats";
+import { EventChannel, HttpServer, Router } from "@noita-ts/http/server";
 
-const reactor = pollnet.Reactor();
-const clients = new Set<pollnet.Socket>();
+const channel = new EventChannel();
 
 const buildPayload = () => {
   const streak = GLOBAL_STATS.session.streak;
@@ -18,19 +18,14 @@ const buildPayload = () => {
 };
 
 const broadcast = () => {
-  if (clients.size === 0) {
-    return;
-  }
-  const frame = `data: ${JSON.stringify(buildPayload())}\n\n`;
-  for (const sock of clients) {
-    sock.send(frame);
+  if (channel.size() > 0) {
+    channel.send(JSON.stringify(buildPayload()));
   }
 };
 
 let updates = 0;
 
 const update = () => {
-  reactor.update();
   if (updates++ % 180 == 0) {
     broadcast();
   }
@@ -77,7 +72,6 @@ const index = `
     };
   </script>
 `;
-const indexResp = `HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: ${index.length}\r\nConnection: close\r\n\r\n${index}`;
 
 const sw = `
   self.addEventListener("install", (e) => {
@@ -100,49 +94,23 @@ const sw = `
     );
   });
 `;
-const swResp = `HTTP/1.1 200 OK\r\nContent-Type: application/javascript\r\nContent-Length: ${sw.length}\r\nConnection: close\r\n\r\n${sw}`;
 
-// rawdog some very basic http over raw tcp for nice single-port SSE
-reactor.run_server(
-  pollnet.listen_tcp(`127.0.0.1:${mod.settings.port}`),
-  (sock) => {
-    const reqList: string[] = [];
+const page = (body: string, type: string) => () => ({
+  headers: { "Content-Type": type },
+  body,
+});
 
-    let chunk: string | false = false;
-    do {
-      [chunk] = sock.await();
-      if (!chunk) {
-        sock.close();
-        return;
-      }
-      reqList.push(chunk);
-    } while (!chunk.includes("\r\n\r\n"));
-
-    const req = reqList.join("");
-    const [path] = string.match(req, "^GET (%S+)") ?? [];
-
-    if (path === "/" || path === "/index.html") {
-      sock.send(indexResp);
-      sock.close();
-    } else if (path === "/sw.js") {
-      sock.send(swResp);
-      sock.close();
-    } else if (path === "/events") {
+new HttpServer(
+  Scheduler.get(),
+  new Router()
+    .get("/", page(index, "text/html"))
+    .get("/index.html", page(index, "text/html"))
+    .get("/sw.js", page(sw, "application/javascript"))
+    .get("/events", () => {
+      const stream = channel.open();
       // immediately send the initial payload there
-      sock.send(
-        `HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\nCache-Control: no-cache\r\nConnection: keep-alive\r\n\r\ndata: ${JSON.stringify(buildPayload())}\n\n`,
-      );
-      clients.add(sock);
-      // just wait for client to disconnect
-      // no pings needed as we send something every 3s
-      while (sock.await()[0]) {}
-      clients.delete(sock);
-      sock.close();
-    } else {
-      sock.send(
-        "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
-      );
-      sock.close();
-    }
-  },
+      stream.send(JSON.stringify(buildPayload()));
+      return stream.response();
+    }),
+  { port: mod.settings.port },
 );

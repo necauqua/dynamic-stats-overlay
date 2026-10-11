@@ -61,8 +61,8 @@ like `{"deaths":420,"wins":69,"streak":3,"record":7}`.
 
 ### Installation
 
-The mod reads game memory directly and runs a native networking library
-(pollnet) inside the game, which cannot be done without it "requesting unsafe
+The mod reads game memory directly and runs an HTTP server on the Windows
+sockets API inside the game, which cannot be done without it "requesting unsafe
 API permissions", so it cannot be uploaded to the Steam Workshop and you have
 to install it manually from here.
 
