@@ -1,7 +1,7 @@
 ## Dynamic Stats Overlay
 
-A Noita mod that serves a small stats overlay — deaths, wins, current win
-streak and personal best — over HTTP directly from the game process, meant to
+A Noita mod that serves a small stats overlay — deaths, runs, wins, current
+win streak and personal best — over HTTP directly from the game process, meant to
 be added to OBS as a browser source.
 
 The overlay updates every 3 seconds (and immediately when you die), smoothly
@@ -44,10 +44,11 @@ NoitaPixel font installed on my system):
 
 Some things you can do from CSS:
 
-- Each stat is an element with id: `#deaths`, `#wins`, `#streak`,
+- Each stat is an element with id: `#deaths`, `#runs`, `#wins`, `#streak`,
   `#record`. The label text in front of each number is just the `--label`
   variable, so `#deaths { --label: "Deaths: "; }` can be used to change (or remove) it.
 - Hide a stat you don't care about with `#wins { display: none; }`.
+  The `#runs` stat is hidden by default, see [the runs counter](#the-runs-counter).
 - `#stats` is a flex container, so `flex-direction`, `gap`, `align-items` etc.
   control the layout. (Copy this readme section into an LLM and ask it in
   English how you want your stats to look 🤷)
@@ -57,7 +58,31 @@ Some things you can do from CSS:
 
 If you want the raw data instead (for your own overlay, a bot, whatever), it's
 a server-sent events stream at `http://localhost:5435/events` sending JSON
-like `{"deaths":420,"wins":69,"streak":3,"record":7}`.
+like `{"deaths":420,"runs":12,"wins":69,"streak":3,"record":7}`.
+
+### The runs counter
+
+Noita counts a win as a death too, so the death count is really a count of
+runs (or resets). The `#runs` stat shows how many runs you did since you last
+reset it, for example in the current stream. It goes up when a new run
+starts.
+
+The overlay does not show it by default. To show it, add this CSS rule:
+
+```css
+#runs { display: inline; }
+```
+
+To set it to zero, open the mod settings and click "Reset the runs counter".
+The mod then remembers your current death count, and shows the difference to
+it. You can do this in the main menu or during a run, the overlay will update.
+
+And this CSS shows only the runs counter, with your own label:
+
+```css
+.stat { display: none; }
+#runs { display: inline; --label: "Runs this stream: "; }
+```
 
 ### Installation
 

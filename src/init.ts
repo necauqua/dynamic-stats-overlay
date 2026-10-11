@@ -5,12 +5,20 @@ import { EventChannel, HttpServer, Router } from "@noita-ts/http/server";
 
 const channel = new EventChannel();
 
+// The mod loads again for each new run, so this is the death count at the
+// start of the current run: the runs counter changes when a new run starts,
+// not when the player dies.
+const runStartDeaths = GLOBAL_STATS.global.death_count;
+
 const buildPayload = () => {
   const streak = GLOBAL_STATS.session.streak;
   const endroomWins = GLOBAL_STATS.KEY_VALUE_STATS.get("progress_ending0") ?? 0;
   const altarWins = GLOBAL_STATS.KEY_VALUE_STATS.get("progress_ending1") ?? 0;
+  const deaths = GLOBAL_STATS.global.death_count;
   return {
-    deaths: GLOBAL_STATS.global.death_count,
+    deaths,
+    // not below zero, when the counter is reset after a death in this run
+    runs: Math.max(0, runStartDeaths - (mod.settings.run_start_deaths ?? 0)),
     wins: endroomWins + altarWins,
     streak: GLOBAL_STATS.session.streak,
     record: Math.max(GLOBAL_STATS.highest.streak, streak),
@@ -40,6 +48,7 @@ const index = `
     #stats { display: flex; gap: 1em; transition: opacity 0.5s; }
     #stats.stale { opacity: 0; }
     #deaths { --label: 'Deaths: '; }
+    #runs { --label: 'Runs: '; display: none; }
     #wins { --label: 'Wins: '; }
     #streak { --label: 'Streak: '; }
     #record { --label: 'PB: '; }
@@ -47,6 +56,7 @@ const index = `
   </style>
   <div id="stats" class="stale">
     <span class="stat" id="deaths"></span>
+    <span class="stat" id="runs"></span>
     <span class="stat" id="wins"></span>
     <span class="stat" id="streak"></span>
     <span class="stat" id="record"></span>
@@ -55,6 +65,7 @@ const index = `
     navigator.serviceWorker?.register("/sw.js");
     const render = (data) => {
       deaths.textContent = data.deaths;
+      runs.textContent = data.runs;
       wins.textContent = data.wins;
       streak.textContent = data.streak;
       record.textContent = data.record;
