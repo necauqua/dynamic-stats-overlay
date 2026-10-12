@@ -2,7 +2,7 @@
   "name": "dynamic-stats-overlay",
   "description": "Live in-game stats exposed in a local HTTP server that can be used as an OBS browser source",
   "author": "necauqua",
-  "version": "1.0.0",
+  "version": "1.2.1",
   "private": true,
   "noita.name": "Dynamic Stats Overlay",
   "noita.compat": 12,
